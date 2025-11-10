@@ -54,6 +54,9 @@ function start(){
                 anthropicEnv[key] = env[key];
             }
         });
+       
+       //anthropicEnv[`ANTHROPIC_API_KEY`] = env["ANTHROPIC_AUTH_TOKEN"];
+
         // claudecode 环境变量是可以通过 env 传递到 mcpserver
         let claudePath = config?.CLAUDE_PATH || process.env.CLAUDE_PATH || getClaudePath();
         let dir = path.dirname(fileURLToPath(import.meta.url));

@@ -119,13 +119,16 @@ function logAPI(fullLog){
     }
 }
 
+
+//兼容 SDK 直接使用
 function headersToObject(headers) {
-  const obj = {};
-  try {
-    for (const [k, v] of headers.entries()) obj[k] = v;
-  } catch {}
-  return obj;
+  if (!headers) return {};
+  if (typeof headers.entries === 'function') {
+    return Object.fromEntries(headers.entries());
+  }
+  return { ...headers }; // assume it’s a plain object
 }
+
 
 /**
  * 
@@ -145,7 +148,7 @@ function instrumentFetch() {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
     const endpoints = [
 		    '/v1/messages',
-			'/anthropic/v1/messages'
+			  '/anthropic/v1/messages'
 	  ];
 
     let urlPath = (new URL(url)).pathname;
@@ -174,8 +177,12 @@ function instrumentFetch() {
         processedBody = init.body;
       }
     }
+    
+    //console.log(Object.prototype.toString.call(init.headers));  
+    //console.log(init.headers);
+
 	//如果对 tools 修改了这里的长度肯定要变化的
-	let requestHeaders = {...init.headers}
+	let requestHeaders = headersToObject(init.headers);
 	    delete requestHeaders["content-length"]; //可能还有大小写问题 
 		//console.log(requestHeaders);
 	
@@ -188,13 +195,15 @@ function instrumentFetch() {
 		  });
 		
 	}catch(e){
-		console.log(e);
+     logger.system.error(`处理请求失败: ${requestHeaders}`);
+		 console.log(e);
 	}
 
     
 
     // 检查响应状态，处理错误情况
     if (!response.ok) {
+       logger.system.error(`API error request:${url}  ${JSON.stringify(requestHeaders)}  ${processedBody}` );
       // 读取原始错误响应
       const errorText = await response.text();
       logger.system.error(`API error response: ${response.status} ${response.statusText}`, {
