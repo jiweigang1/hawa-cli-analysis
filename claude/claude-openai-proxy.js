@@ -4,6 +4,8 @@ import {mergeAnthropic}  from '../api-anthropic.js';
 import LoggerManage from "../logger-manager.js";
 import { join } from "path";
 import { readFileSync } from "fs";
+import anthropicTransformer from  "../anthropic-transformer.js"
+import {parseOpenAIChatCompletion} from "../api-openai.js";
 
 let logger = LoggerManage.getLogger("claudecode");
 const BASE_URL = process.env.BASE_URL;// || "https://api.anthropic.com";
@@ -174,143 +176,105 @@ async function handel(request, reply, endpoint){
 
          return fetch(url, fetchOptions);
       }
-  
-      //打印请求信息 request.body
-      let processedBody = JSON.stringify(request.body);
 
-      logger.system.debug('请求 body' + processedBody);
-  
-      // 如果是模型请求，处理请求body中的tools
-      if (request.body) {
-        try {
-          const processedBodyObj = processRequestTools(request.body);
-          processedBody = JSON.stringify(processedBodyObj);
-          //后面再改
-          if (processedBody !== request.body) {
-              logger.system.debug('请求body中的tools已被处理');
-          }
-        } catch (error) {
-          logger.system.error(`处理请求body失败: ${error.message}`);
-          // 如果处理失败，使用原始body
-          processedBody = request.body;
-        }
-      }
-    //如果对 tools 修改了这里的长度肯定要变化的
-    let requestHeaders = {...request.headers}
-        delete requestHeaders["content-length"]; //可能还有大小写问题 
-      //console.log(requestHeaders);
-    
-    let response;
-    try{
-        response = await fetch(url, {
-          method: request.method,
-          headers: requestHeaders,
-          body: processedBody,
-        });
+      //console.log("请求地址: " + url);
+          //转换前的请求
+          let initBody    = request.body;
+          //请求的 JSON 
+          let requestBody = await anthropicTransformer.transformRequestOut(initBody);
+          //转换后的请求
+          let openaiRequestBodyString = JSON.stringify(requestBody);
+              
+          //console.log(JSON.parse(openaiRequestBody));
+         
+          //打印请求信息 init.body
+          const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.ANTHROPIC_AUTH_TOKEN}`
+            },
+            body: openaiRequestBodyString,
+          });
       
-    }catch(error){
-       logger.system.error(`处理请求失败: ${error.message}`);
-    }
-  
-      // 检查响应状态，处理错误情况
-      if (!response.ok) {
-        // 读取原始错误响应
-        const errorText = await response.text();
-        logger.system.error(`API error response: ${response.status} ${response.statusText}`, {
-          url: url,
-          status: response.status,
-          errorResponse: errorText
-        });
-  
-        // 尝试解析错误响应并转换为通用错误格式
-        let errorResponse;
-        try {
-          const originalError = JSON.parse(errorText);
-          // 构建通用错误响应格式
-          errorResponse = {
-            type: "error",
-            error: {
-              type: "api_error",
-              message: originalError.error?.message || originalError.message || `API error: ${response.statusText}`,
-              code: originalError.error?.code || originalError.code || `API_${response.status}_ERROR`
+          let responseToClient = response.clone();
+      
+          // 判断OpenRouter响应是否为异常
+          if (!response.ok) {
+            // 读取OpenRouter错误响应
+            const openrouterErrorText = await response.text();
+            logger.system.error(`OpenRouter API error response: ${response.status} ${response.statusText}`, {
+              url: url,
+              status: response.status,
+              errorResponse: openrouterErrorText
+            });
+      
+            // 将OpenRouter错误响应转换为Claude Code错误响应格式
+            let claudeErrorResponse;
+            try {
+              const openrouterError = JSON.parse(openrouterErrorText);
+              claudeErrorResponse = {
+                type: "error",
+                error: {
+                  type: "api_error",
+                  message: openrouterError.error?.message || `OpenRouter API error: ${response.statusText}`,
+                  code: `OPENROUTER_${response.status}_ERROR`
+                }
+              };
+            } catch (parseError) {
+              // 如果无法解析OpenRouter的错误JSON，使用通用错误格式
+              claudeErrorResponse = {
+                type: "error",
+                error: {
+                  type: "api_error",
+                  message: `OpenRouter API error: ${response.statusText}`,
+                  code: `OPENROUTER_${response.status}_ERROR`
+                }
+              };
             }
-          };
-  
-          // 如果有详细错误信息，保留原始结构
-          if (originalError.error?.details) {
-              errorResponse.error.details = originalError.error.details;
-          }
-  
-        } catch (parseError) {
-          // 如果无法解析错误JSON，使用通用错误格式
-          logger.system.error(`Failed to parse error response: ${parseError.message}`);
-          errorResponse = {
-            type: "error",
-            error: {
-              type: "api_error",
-              message: `API error: ${response.statusText}`,
-              code: `API_${response.status}_ERROR`
-            }
-          };
-        }
-  
-        // 返回标准化的错误响应
-        return new Response(JSON.stringify(errorResponse), {
-          status: response.status,
-          statusText: response.statusText,
-          headers: {
-            "Content-Type": "application/json"
-          }
-        });
-      }
-  
-      //response = proxyResponse(response);
-      let responseToClient = response.clone()
-      // stream 不能通过 content type 判断，
-      let isStream = true;
-      if(Object.hasOwn(request.body, "stream") &&  !request.body.stream){
-          isStream = false;
-          logger.full.debug("模型不是流请求");
-      }
-    
-  
-      //完整的请求日志，保护请求和响应
-      let fullLog = {request:{
-          url:url,
-          method: request.method,
-          headers: headersToObject(request.headers),
-          body: JSON.parse(processedBody)
-        },response:{
+      
+            // 返回转换后的错误响应
+            return new Response(JSON.stringify(claudeErrorResponse), {
               status: response.status,
               statusText: response.statusText,
-              headers: headersToObject(response.headers)
-        }};
-  
-        try{
-            //日志解析要异步执行保证效率
-            (async ()=>{
-              if(isStream){
-                let alllog = await response.text();
-                //logger.full.debug("alllog "+alllog)
-                fullLog.response.body = mergeAnthropic(alllog);   
-              }else{
-                 fullLog.response.body = await response.json();
+              headers: {
+                "Content-Type": "application/json"
               }
+            });
+          }
+      
+          //完整的请求日志，保护请求和响应
+          let fullLog = {request:{
+              url:url,
+              method: init.method,
+              headers: headersToObject(init.headers),
+              body: initBody
+            },response:{
+                  status: response.status,
+                  statusText: response.statusText,
+                  headers: headersToObject(response.headers)
+            },openai:{
+              request: {
+                 body: requestBody
+              },
+              response: {}
+            }};
+      
+          let         res = await anthropicTransformer.transformResponseIn(responseToClient);
+          let toClientRes = await res.clone();
+      
+          (async () => {
              
-              logAPI(fullLog);
+            fullLog.openai.response.body  =  await parseOpenAIChatCompletion(await response.text());
+            fullLog.response.body         =  mergeAnthropic(await res.text());
+      
+            //其他类型是错误的
+            logAPI(fullLog);
+      
+          })().catch(err => console.error('日志解析错误:', err));
+      
+          return toClientRes;
   
-            })().catch(err => logger.system.error('日志解析错误:' + "\nStack trace: " + err.stack));
-          
-  
-  
-          return new Response(responseToClient.body, {
-                status: response.status,
-                statusText: response.statusText,
-                headers: response.headers
-          });
-        }catch(e){
-          logger.system.error(e);
-        }
 }
 
 // 启动服务

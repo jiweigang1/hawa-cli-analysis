@@ -15,7 +15,7 @@ import { join } from 'path';
 
 const startServer = async (openai,base_url) => {
   let dir = path.dirname(fileURLToPath(import.meta.url));
-  const child = spawn('node ' + path.join(dir, "claude" , openai?"claude-proxy-openai.js":'claude-proxy.js'), [],{
+  const child = spawn('node ' + path.join(dir, "claude" , openai?"claude-openai-proxy.js":'claude-proxy.js'), [],{
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: true,
     env:{
