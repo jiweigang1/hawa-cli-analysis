@@ -9,36 +9,8 @@ import inquirer from 'inquirer';
 import path  from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import LogManager from './logger-manager.js';
+
 const logger = LogManager.getSystemLogger();
-import { join } from 'path';
-
-
-const startServer = async (openai,base_url) => {
-  let dir = path.dirname(fileURLToPath(import.meta.url));
-  const child = spawn('node ' + path.join(dir, "claude" , openai?"ucodex-proxy-openai.js":'ucodex-proxy.js'), [],{
-    stdio: ['ignore', 'pipe', 'pipe'],
-    shell: true,
-    env:{
-      ...process.env,
-      BASE_URL: base_url
-    }
-  });
-
-    // 监听标准输出
-  child.stdout.on('data', (data) => {
-    //console.log(`子进程 stdout: ${data}`);
-  });
-
-  // 监听错误输出
-  child.stderr.on('data', (data) => {
-    logger.error(`子进程 stderr: ${data}`);
-  });
-
-  child.on('close', (code) => {
-    logger.debug(`codex 退出，退出码: ${code}`);
-  });
-};
-
 
 /**
  * 启动 calude code
@@ -82,32 +54,16 @@ function start(){
                 anthropicEnv[key] = env[key];
             }
         });
-<<<<<<< .mine
-       
-       //anthropicEnv[`ANTHROPIC_API_KEY`] = env["ANTHROPIC_AUTH_TOKEN"];
-
-
-=======
-        
-        anthropicEnv[`BASE_URL`] = anthropicEnv[`ANTHROPIC_BASE_URL`];
-        anthropicEnv[`ANTHROPIC_BASE_URL`] = "127.0.0.1";
-
->>>>>>> .theirs
         // claudecode 环境变量是可以通过 env 传递到 mcpserver
         let claudePath = config?.CLAUDE_PATH || process.env.CLAUDE_PATH || getClaudePath();
         let dir = path.dirname(fileURLToPath(import.meta.url));
-        
         if(answers.choice=="openrouter"){
-            //启动 claude-openai-proxy.js 代理
-            startServer(true);
+            claudePath = "node --import " + pathToFileURL(path.join(dir, 'clogger-openai.js')) + " " + claudePath;
         }else{
-            //启动 claude-proxy.js 代理
-            startServer(false);
+             claudePath = "node --import "+ pathToFileURL(path.join(dir, 'clogger.js')) + " " + claudePath;
         }
 
-         claudePath = "node " + claudePath;
-
-         logger.debug(`启动 Claude 进程: ${claudePath}`);
+            logger.debug(`启动 Claude 进程: ${claudePath}`);
 
         const child = spawn(claudePath,[],{
                 env:{
