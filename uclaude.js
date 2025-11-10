@@ -82,17 +82,11 @@ function start(){
                 anthropicEnv[key] = env[key];
             }
         });
-<<<<<<< .mine
        
-       //anthropicEnv[`ANTHROPIC_API_KEY`] = env["ANTHROPIC_AUTH_TOKEN"];
-
-
-=======
-        
+        anthropicEnv[`ANTHROPIC_API_KEY`] = env["ANTHROPIC_AUTH_TOKEN"];        
         anthropicEnv[`BASE_URL`] = anthropicEnv[`ANTHROPIC_BASE_URL`];
         anthropicEnv[`ANTHROPIC_BASE_URL`] = "127.0.0.1";
 
->>>>>>> .theirs
         // claudecode 环境变量是可以通过 env 传递到 mcpserver
         let claudePath = config?.CLAUDE_PATH || process.env.CLAUDE_PATH || getClaudePath();
         let dir = path.dirname(fileURLToPath(import.meta.url));
