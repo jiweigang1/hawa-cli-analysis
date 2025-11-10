@@ -1,8 +1,11 @@
 // server.js
 import Fastify from "fastify";
-import LoggerManage from "../logger-manager.js" 
+import {mergeAnthropic}  from '../api-anthropic.js';
+import LoggerManage from "../logger-manager.js";
+import { join } from "path";
+import { readFileSync } from "fs";
 
-let  logger = LoggerManage.getLogger("claudecode");
+let logger = LoggerManage.getLogger("claudecode");
 const BASE_URL = process.env.BASE_URL;// || "https://api.anthropic.com";
 logger.system.debug("-------------Clogger Start--------------------------");
 
@@ -158,15 +161,16 @@ async function handel(request, reply, endpoint){
       }
   
       //打印请求信息 request.body
-      let processedBody = request.body;
+      let processedBody = JSON.stringify(request.body);
+
+      logger.system.debug('请求 body' + processedBody);
   
       // 如果是模型请求，处理请求body中的tools
       if (request.body) {
         try {
-          const bodyObj = JSON.parse(request.body);
-          const processedBodyObj = processRequestTools(bodyObj);
+          const processedBodyObj = processRequestTools(request.body);
           processedBody = JSON.stringify(processedBodyObj);
-  
+          //后面再改
           if (processedBody !== request.body) {
               logger.system.debug('请求body中的tools已被处理');
           }
@@ -189,8 +193,8 @@ async function handel(request, reply, endpoint){
           body: processedBody,
         });
       
-    }catch(e){
-      console.log(e);
+    }catch(error){
+       logger.system.error(`处理请求失败: ${error.message}`);
     }
   
       // 检查响应状态，处理错误情况
@@ -277,8 +281,6 @@ async function handel(request, reply, endpoint){
               }else{
                  fullLog.response.body = await response.json();
               }
-        
-             // logger.full.debug("adassdadadadad>>>>>>" + JSON.stringify(fullLog));
              
               logAPI(fullLog);
   

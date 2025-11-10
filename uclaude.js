@@ -82,10 +82,11 @@ function start(){
                 anthropicEnv[key] = env[key];
             }
         });
-       
-        anthropicEnv[`ANTHROPIC_API_KEY`] = env["ANTHROPIC_AUTH_TOKEN"];        
-        anthropicEnv[`BASE_URL`] = anthropicEnv[`ANTHROPIC_BASE_URL`];
-        anthropicEnv[`ANTHROPIC_BASE_URL`] = "127.0.0.1";
+        
+        anthropicEnv[`ANTHROPIC_API_KEY`] = env["ANTHROPIC_AUTH_TOKEN"];
+        let BASE_URL = anthropicEnv[`ANTHROPIC_BASE_URL`];
+        //anthropicEnv[`BASE_URL`] = anthropicEnv[`ANTHROPIC_BASE_URL`];
+        anthropicEnv[`ANTHROPIC_BASE_URL`] = "http://127.0.0.1:3000";
 
         // claudecode 环境变量是可以通过 env 传递到 mcpserver
         let claudePath = config?.CLAUDE_PATH || process.env.CLAUDE_PATH || getClaudePath();
@@ -93,10 +94,10 @@ function start(){
         
         if(answers.choice=="openrouter"){
             //启动 claude-openai-proxy.js 代理
-            startServer(true);
+            startServer(true,BASE_URL);
         }else{
             //启动 claude-proxy.js 代理
-            startServer(false);
+            startServer(false,BASE_URL);
         }
 
          claudePath = "node " + claudePath;
