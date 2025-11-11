@@ -1,7 +1,7 @@
 {
-  "name": "clilogger",
+  "name": "hawa-cli-analysis",
   "version": "1.0.0",
-  "main": "clogger",
+  "main": "index",
   "bin": {
     "uclaude": "uclaude.js",
     "ucodex": "ucodex.js"
