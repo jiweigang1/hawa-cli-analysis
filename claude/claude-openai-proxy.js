@@ -6,6 +6,7 @@ import { join } from "path";
 import { readFileSync } from "fs";
 import anthropicTransformer from  "../anthropic-transformer.js"
 import {parseOpenAIChatCompletion} from "../api-openai.js";
+import portManager from '../port-manager.js';
 
 let logger = LoggerManage.getLogger("claudecode");
 const BASE_URL = process.env.BASE_URL;// || "https://api.anthropic.com";
@@ -280,8 +281,22 @@ async function handel(request, reply, endpoint){
 // 启动服务
 const startServer = async () => {
   try {
-    await fastify.listen({ port: 3000, host: "0.0.0.0" });
-    logger.system.debug("✅ Server started");
+    // 从环境变量获取端口，如果没有则动态分配
+    let port = process.env.PROXY_PORT ? parseInt(process.env.PROXY_PORT) : null;
+
+    if (!port) {
+      port = await portManager.getAvailablePort();
+      if (!port) {
+        logger.system.error('无法获取可用端口');
+        process.exit(1);
+      }
+    }
+
+    await fastify.listen({ port: port, host: "0.0.0.0" });
+    logger.system.debug(`✅ Server started on port ${port}`);
+
+    // 输出端口信息到标准输出，供父进程读取
+    console.log(`PROXY_PORT:${port}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

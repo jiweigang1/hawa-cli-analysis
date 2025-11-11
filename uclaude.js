@@ -10,17 +10,19 @@ import path  from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import LogManager from './logger-manager.js';
 const logger = LogManager.getSystemLogger();
+import portManager from './port-manager.js';
 import { join } from 'path';
 
 
-const startServer = async (openai,base_url) => {
+const startServer = async (openai, base_url, port = null) => {
   let dir = path.dirname(fileURLToPath(import.meta.url));
   const child = spawn('node ' + path.join(dir, "claude" , openai?"claude-openai-proxy.js":'claude-proxy.js'), [],{
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: true,
     env:{
       ...process.env,
-      BASE_URL: base_url
+      BASE_URL: base_url,
+      PROXY_PORT: port
     }
   });
 
@@ -85,20 +87,35 @@ function start(){
         
         anthropicEnv[`ANTHROPIC_API_KEY`] = env["ANTHROPIC_AUTH_TOKEN"];
         let BASE_URL = anthropicEnv[`ANTHROPIC_BASE_URL`];
-        //anthropicEnv[`BASE_URL`] = anthropicEnv[`ANTHROPIC_BASE_URL`];
-        anthropicEnv[`ANTHROPIC_BASE_URL`] = "http://127.0.0.1:3000";
 
         // claudecode 环境变量是可以通过 env 传递到 mcpserver
         let claudePath = config?.CLAUDE_PATH || process.env.CLAUDE_PATH || getClaudePath();
         let dir = path.dirname(fileURLToPath(import.meta.url));
-        
+
+        // 动态分配端口
+        let proxyPort;
         if(answers.choice=="openrouter"){
             //启动 claude-openai-proxy.js 代理
-            startServer(true,BASE_URL);
+            proxyPort = await portManager.getAvailablePort();
+            if (!proxyPort) {
+                console.error("错误：无法获取可用端口！");
+                logger.error("无法获取可用端口，程序退出");
+                process.exit(1);
+            }
+            startServer(true, BASE_URL, proxyPort);
         }else{
             //启动 claude-proxy.js 代理
-            startServer(false,BASE_URL);
+            proxyPort = await portManager.getAvailablePort();
+            if (!proxyPort) {
+                console.error("错误：无法获取可用端口！");
+                logger.error("无法获取可用端口，程序退出");
+                process.exit(1);
+            }
+            startServer(false, BASE_URL, proxyPort);
         }
+
+        // 设置代理地址
+        anthropicEnv[`ANTHROPIC_BASE_URL`] = `http://127.0.0.1:${proxyPort}`;
 
          claudePath = "node " + claudePath;
 
