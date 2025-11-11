@@ -33,6 +33,10 @@
 
 ### 安装步骤
 
+ ```bash
+npm install -g @dahawa/hawa-cli-analysis
+  ```
+
 1. **克隆项目**
    ```bash
    git clone https://github.com/jiweigang1/hawa-cli-analysis.git
@@ -190,21 +194,3 @@ hawa-cli-analysis/
 ## 📄 许可证
 
 ISC License
-
-## 🔗 相关链接
-
-- [Claude Code](https://github.com/anthropics/claude-code)
-- [OpenAI Codex](https://openai.com/codex)
-- [Kimi API](https://platform.moonshot.cn/)
-- [DeepSeek API](https://platform.deepseek.com/)
-- [OpenRouter](https://openrouter.ai/)
-
-## 📄 更新记录
-
-### v1.0.2
-- 支持多进程多个端口同时运行
-- 优化项目结构和配置管理
-- 更新项目名称为 `hawa-cli-analysis`
-  
-
-
