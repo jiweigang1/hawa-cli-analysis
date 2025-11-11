@@ -1,16 +1,17 @@
-# CLI 上下文分析工具
+# Hawa CLI 分析工具
 
-这是一个用于增强 Claude CLI、Codex CLI 和 Claude Code Router 的上下文日志分析工具。通过代理模式拦截和分析 API 调用，提供详细的日志记录和分析功能。
+这是一个用于增强 Claude CLI、Codex CLI 的上下文日志分析工具。通过代理模式拦截和分析 API 调用，提供详细的日志记录和分析功能。
 
 ## 🌟 功能特性
 
-- **多 CLI 支持**: 支持 Claude CLI、Codex CLI 和 Claude Code Router
+- **多 CLI 支持**: 支持 Claude CLI、Codex CLI
 - **代理模式**: 通过本地代理服务器拦截和分析 API 调用
 - **详细日志记录**: 记录所有 API 请求和响应，支持完整和简化日志模式
 - **多模型支持**: 支持 Kimi、DeepSeek、OpenRouter 等多种 AI 模型
 - **MCP 服务器代理**: 支持 MCP (Model Context Protocol) 服务器代理
 - **端口管理**: 自动分配可用端口，避免端口冲突
 - **配置管理**: 灵活的配置文件管理，支持多环境配置
+- **多进程支持**: 支持多进程多个端口同时运行
 
 ## 📋 支持的 CLI 工具
 
@@ -21,12 +22,8 @@
 
 ### 2. Codex CLI (`ucodex`)
 - 支持 OpenAI Codex 命令行工具
-- Rust 开发，使用代理模式进行日志获取
-- 支持三方模型配置
-
-### 3. Claude Code Router (`ccr`)
-- 支持 Claude Code Router 配置
-- 需要手动配置路径
+- 使用代理模式进行日志获取
+- 支持多种 AI 模型配置
 
 ## 🚀 安装方式
 
@@ -38,8 +35,8 @@
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/jiweigang1/clilogger.git
-   cd clilogger
+   git clone https://github.com/jiweigang1/hawa-cli-analysis.git
+   cd hawa-cli-analysis
    ```
 
 2. **安装依赖**
@@ -61,9 +58,9 @@
 ## ⚙️ 配置说明
 
 ### 配置文件位置
-配置文件位于用户主目录下的 `.clilogger/config.json`：
-- **Windows**: `C:\Users\用户名\.clilogger\config.json`
-- **macOS/Linux**: `~/.clilogger/config.json`
+配置文件位于用户主目录下的 `.hawa-cli-analysis/config.json`：
+- **Windows**: `C:\Users\用户名\.hawa-cli-analysis\config.json`
+- **macOS/Linux**: `~/.hawa-cli-analysis/config.json`
 
 ### 默认配置
 ```json
@@ -121,25 +118,12 @@ ucodex
 # 程序会自动启动代理服务器和 Codex CLI
 ```
 
-### Claude Code Router 配置
-在 Claude Code 配置中添加：
-```json
-"CLAUDE_PATH": "node --import file:D:\\Javaworks\\clilogger\\clogger.js C:\\Users\\gang.ji\\AppData\\Roaming\\npm\\node_modules\\@anthropic-ai\\claude-code\\cli.js"
-```
-
-> ⚠️ 注意：根据自己的安装路径进行修改
-
-然后执行：
-```bash
-ccr code
-```
-
 ## 🔧 高级配置
 
 ### MCP 服务器配置
 支持配置 MCP (Model Context Protocol) 服务器：
 
-配置文件位置：`~/.clilogger/mcp.json`
+配置文件位置：`~/.hawa-cli-analysis/mcp.json`
 
 ```json
 {
@@ -167,7 +151,7 @@ ccr code
 ## 📁 项目结构
 
 ```
-clilogger/
+hawa-cli-analysis/
 ├── api-anthropic.js      # Anthropic API 处理
 ├── api-openai.js         # OpenAI API 处理
 ├── anthropic-transformer.js  # Anthropic 数据转换
@@ -183,12 +167,18 @@ clilogger/
 ├── uclaude.js            # Claude CLI 启动器
 ├── ucodex.js             # Codex CLI 启动器
 ├── untils.js             # 工具函数
+├── _uclaude.js           # Claude CLI 备用启动器
+├── index.js              # 主入口文件
+├── claude/               # Claude 相关配置
+├── codex/                # Codex 相关配置
+├── mcp/                  # MCP 服务器配置
+├── tests/                # 测试文件
 └── package.json
 ```
 
 ## 🔍 日志文件
 
-日志文件保存在用户主目录下的 `.clilogger/logs/` 目录中：
+日志文件保存在用户主目录下的 `.hawa-cli-analysis/logs/` 目录中：
 - **系统日志**: `system/api-simple-{timestamp}.log`
 - **完整日志**: `{cli-type}/api-full-{timestamp}.log`
 - **简化日志**: `{cli-type}/api-simple-{timestamp}.log`
@@ -208,6 +198,13 @@ ISC License
 - [Kimi API](https://platform.moonshot.cn/)
 - [DeepSeek API](https://platform.deepseek.com/)
 - [OpenRouter](https://openrouter.ai/)
+
+## 📄 更新记录
+
+### v1.0.2
+- 支持多进程多个端口同时运行
+- 优化项目结构和配置管理
+- 更新项目名称为 `hawa-cli-analysis`
   
 
 

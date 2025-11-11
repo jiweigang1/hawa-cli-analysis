@@ -11,14 +11,14 @@ class LogManager {
         //日志打印在用户目录下面
         let homedir = os.homedir();
         //在用户目录下创建配置信息和日志输出
-        let   logDir = path.join(homedir, '.clilogger','logs',cliType);
+        let   logDir = path.join(homedir, '.hawa-cli-analysis','logs',cliType);
 
         //如果日志目录不存在进行创建
         if (!fs.existsSync(logDir)) {
             fs.mkdirSync(logDir, { recursive: true });
         }
 
-        //console.log('clilogger log Directory:', logDir);
+        //console.log('hawa-cli-analysis log Directory:', logDir);
 
         // 使用时间戳创建文件，但只在第一次创建时显示
         let timestamp = Date.now();

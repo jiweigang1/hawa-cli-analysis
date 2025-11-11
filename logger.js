@@ -9,14 +9,14 @@ import path from 'path';
 //const __filename = fileURLToPath(import.meta.url);
 let homedir = os.homedir();
 //在用户目录下创建配置信息和日志输出
-let   logDir = path.join(homedir, '.clilogger','logs');
+let   logDir = path.join(homedir, '.hawa-cli-analysis','logs');
 
 //如果日志目录不存在进行创建
 if (!fs.existsSync(logDir)) {
      fs.mkdirSync(logDir, { recursive: true });
 }
 
-//console.log('clilogger log Directory:', logDir);
+//console.log('hawa-cli-analysis log Directory:', logDir);
 
 let timestamp = Date.now();
 

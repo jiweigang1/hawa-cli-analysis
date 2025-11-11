@@ -24,11 +24,11 @@ function getGlobalNpmPath() {
 
 export function getMcpOauthTokensPath(){
      let home = os.homedir();
-    return path.join(home,'.clilogger',"mcp_oauth_tokens.js");
+    return path.join(home,'.hawa-cli-analysis',"mcp_oauth_tokens.js");
 }
 
 export function getCloggerFileURL(){
-    return pathToFileURL(path.join(getGlobalNpmPath(),'clilogger',"clogger.js"));
+    return pathToFileURL(path.join(getGlobalNpmPath(),'hawa-cli-analysis',"clogger.js"));
 }
 //C:\Users\gang.ji\AppData\Roaming\npm\node_modules\@anthropic-ai\claude-code
 export function getClaudePath(){
