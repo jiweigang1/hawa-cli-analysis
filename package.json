@@ -1,6 +1,6 @@
 {
-  "name": "hawa-cli-analysis",
-  "version": "1.0.0",
+  "name": "@dahawa/hawa-cli-analysis",
+  "version": "1.0.1",
   "main": "index",
   "bin": {
     "uclaude": "uclaude.js",
@@ -12,14 +12,14 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jiweigang1/clilogger.git"
+    "url": "git+https://github.com/jiweigang1/hawa-cli-analysis.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jiweigang1/clilogger/issues"
+    "url": "https://github.com/jiweigang1/hawa-cli-analysis/issues"
   },
-  "homepage": "https://github.com/jiweigang1/clilogger#readme",
+  "homepage": "https://github.com/jiweigang1/hawa-cli-analysis#readme",
   "description": "",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.62.0",
