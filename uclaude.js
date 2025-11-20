@@ -123,11 +123,13 @@ function start(){
 
         const child = spawn(claudePath,[],{
                 env:{
+                    ...process.env,  //包含原先环境变量
                     ...anthropicEnv,
                      PIPE_PATH_PRE: process.pid
                 },
                 stdio: 'inherit', // 继承父进程 stdio，方便交互,
-                shell: true
+                shell: true,
+                cwd: process.cwd()  // 设置工作目录为当前目录
             }
         );
 
