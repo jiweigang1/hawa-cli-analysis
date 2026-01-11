@@ -175,8 +175,24 @@ async function handel(request, reply, endpoint){
 
          return fetch(url, fetchOptions);
       }
-  
-      //打印请求信息 request.body
+      
+      const models = [process.env["MODEL"] , process.env["SMALL_FAST_MODEL"]]
+
+     
+      if (request.body && request.body.model) {
+        // Filter out undefined/null values from models array
+        const validModels = models.filter(model => model != null && model !== '');
+        
+        if (!validModels.includes(request.body.model)) {
+          logger.system.debug(`Model "${request.body.model}" not in allowed models, changing to "${process.env["MODEL"]}"`);
+          request.body.model = process.env["MODEL"];
+        }
+      }
+
+
+
+
+      //打印请求 //判断 request.body 中的模型如果模型,如果不属于 models 类型，修改为 process.env["MODEL"]信息 request.body
       let processedBody = JSON.stringify(request.body);
 
       logger.system.debug('请求 body' + processedBody);
@@ -332,7 +348,7 @@ const startServer = async () => {
     logger.system.debug(`✅ Server started on port ${port}`);
 
     // 输出端口信息到标准输出，供父进程读取
-    console.log(`PROXY_PORT:${port}`);
+    logger.system.debug(`PROXY_PORT:${port}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

@@ -14,7 +14,7 @@ import portManager from './port-manager.js';
 import { join } from 'path';
 
 
-const startServer = async (openai, base_url, port = null) => {
+const startServer = async (openai, base_url, port = null ,MODEL , SMALL_FAST_MODEL) => {
   let dir = path.dirname(fileURLToPath(import.meta.url));
   const child = spawn('node ' + path.join(dir, "claude" , openai?"claude-openai-proxy.js":'claude-proxy.js'), [],{
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -22,7 +22,9 @@ const startServer = async (openai, base_url, port = null) => {
     env:{
       ...process.env,
       BASE_URL: base_url,
-      PROXY_PORT: port
+      PROXY_PORT: port,
+      MODEL:MODEL,
+      SMALL_FAST_MODEL:SMALL_FAST_MODEL
     }
   });
 
@@ -102,7 +104,7 @@ function start(){
                 logger.error("无法获取可用端口，程序退出");
                 process.exit(1);
             }
-            startServer(true, BASE_URL, proxyPort);
+            startServer(true, BASE_URL, proxyPort , env['MODEL'], env['SMALL_FAST_MODEL']);
         }else{
             //启动 claude-proxy.js 代理
             proxyPort = await portManager.getAvailablePort();
@@ -111,7 +113,7 @@ function start(){
                 logger.error("无法获取可用端口，程序退出");
                 process.exit(1);
             }
-            startServer(false, BASE_URL, proxyPort);
+            startServer(false, BASE_URL, proxyPort, env['MODEL'], env['SMALL_FAST_MODEL']);
         }
 
         // 设置代理地址

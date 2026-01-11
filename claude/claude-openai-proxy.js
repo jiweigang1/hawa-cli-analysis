@@ -178,6 +178,16 @@ async function handel(request, reply, endpoint){
          return fetch(url, fetchOptions);
       }
 
+      if (request.body && request.body.model) {
+        // Filter out undefined/null values from models array
+        const validModels = models.filter(model => model != null && model !== '');
+        
+        if (!validModels.includes(request.body.model)) {
+          logger.system.debug(`Model "${request.body.model}" not in allowed models, changing to "${process.env["MODEL"]}"`);
+          request.body.model = process.env["MODEL"];
+        }
+      }
+
       //console.log("请求地址: " + url);
           //转换前的请求
           let initBody    = request.body;
