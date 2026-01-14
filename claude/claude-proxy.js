@@ -350,7 +350,7 @@ const startServer = async () => {
     // 输出端口信息到标准输出，供父进程读取
     logger.system.debug(`PROXY_PORT:${port}`);
   } catch (err) {
-    fastify.log.error(err);
+    logger.system.debug("代理服务启动失败：",err)
     process.exit(1);
   }
 };
