@@ -184,11 +184,11 @@ function startMCPServerProxy(){
 async function startMCPServerProxy() {
   return new Promise((resolve, reject) => {
     const dir = path.dirname(fileURLToPath(import.meta.url));
-    const child = spawn("node " + path.join(dir, "mcp", "claude-mcpproxy-launcher.js"), [], {
+    const child = spawn(process.execPath, [path.join(dir, "mcp", "claude-mcpproxy-launcher.js")], {
       stdio: "pipe",
-      shell: true,
       env: {
-        PIPE_PATH_PRE: process.pid
+        PIPE_PATH_PRE: process.pid,
+        ...process.env  // 继承当前环境变量
       }
     });
 

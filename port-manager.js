@@ -17,23 +17,28 @@ class PortManager {
      * @returns {Promise<boolean>} - 端口是否可用
      */
     async isPortAvailable(port) {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             const server = net.createServer();
 
             server.once('error', (err) => {
-                if (err.code === 'EADDRINUSE') {
-                    resolve(false);
-                } else {
-                    resolve(false);
-                }
+                server.close(() => {
+                    // 确保服务器已关闭
+                    if (err.code === 'EADDRINUSE') {
+                        resolve(false);
+                    } else {
+                        reject(err);  // 其他错误应该抛出
+                    }
+                });
             });
 
             server.once('listening', () => {
-                server.close();
-                resolve(true);
+                server.close(() => {
+                    // 等待 close 完成后再 resolve
+                    resolve(true);
+                });
             });
-
-            server.listen(port);
+            // 必须指定地址 不然 mac 下是 ipv6 ，检查端口不生效
+            server.listen(port,'0.0.0.0');
         });
     }
 
